@@ -1,0 +1,45 @@
+name: Build 7amed EFI
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential uuid-dev iasl nasm python3 python3-pip
+
+    - name: Clone EDK2 and Setup
+      run: |
+        git clone --depth 1 https://github.com/tianocore/edk2.git
+        cd edk2
+        git submodule update --init
+        make -C BaseTools
+        source edksetup.sh
+
+    - name: Build 7amed.efi
+      run: |
+        cd edk2
+        export WORKSPACE=$PWD
+        export PACKAGES_PATH=$PWD
+        source edksetup.sh
+        mkdir -p MdeModulePkg/Application/7amedPkg
+        cp ../7amed.c MdeModulePkg/Application/7amedPkg/
+        cp ../7amed.inf MdeModulePkg/Application/7amedPkg/
+        sed -i 's|MdeModulePkg/Application/HelloWorld/HelloWorld.inf|MdeModulePkg/Application/7amedPkg/7amed.inf|' MdeModulePkg/MdeModulePkg.dsc
+        build -a X64 -p MdeModulePkg/MdeModulePkg.dsc -m MdeModulePkg/Application/7amedPkg/7amed.inf
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: 7amed-efi
+        path: edk2/Build/MdeModulePkg/DEBUG_GCC5/X64/7amed.efi
