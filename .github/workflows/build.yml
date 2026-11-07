@@ -11,12 +11,12 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential uuid-dev iasl nasm python3 python3-pip
+        sudo apt-get install -y build-essential uuid-dev iasl nasm python3 python3-pip git
 
     - name: Clone EDK2 and Setup
       run: |
@@ -39,7 +39,7 @@ jobs:
         build -a X64 -p MdeModulePkg/MdeModulePkg.dsc -m MdeModulePkg/Application/7amedPkg/7amed.inf
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: 7amed-efi
         path: edk2/Build/MdeModulePkg/DEBUG_GCC5/X64/7amed.efi
